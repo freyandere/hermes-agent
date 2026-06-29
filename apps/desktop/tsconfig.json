@@ -3,6 +3,7 @@
     "target": "ES2023",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "types": ["node"],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -21,5 +22,5 @@
     }
   },
   "include": ["src", "../shared/src"],
-  "references": []
+  "references": [{ "path": "./tsconfig.electron.json" }]
 }

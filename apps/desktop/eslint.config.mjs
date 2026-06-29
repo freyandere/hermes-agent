@@ -28,7 +28,7 @@ export default [
   },
   js.configs.recommended,
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx}', 'electron/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -105,12 +105,12 @@ export default [
     }
   },
   {
-    files: ['**/*.js', '**/*.cjs'],
+    files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
     ignores: ['**/node_modules/**', '**/dist/**'],
     languageOptions: {
       ecmaVersion: 'latest',
       globals: { ...globals.node },
-      sourceType: 'commonjs'
+      sourceType: 'module'
     }
   },
   {
