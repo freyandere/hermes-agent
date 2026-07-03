@@ -168,247 +168,247 @@ export default function PluginsPage() {
   const providers = hub?.providers;
 
   return (
-    <div className="flex flex-col gap-4">
-      <PluginSlot name="plugins:top" />
+     <div className="flex flex-col gap-4">
+       <PluginSlot name="plugins:top" />
 
-      <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
-        <div className="flex items-center gap-1.5">
-          <Filter className="h-3.5 w-3.5 opacity-60" />
-          <span className="uppercase tracking-[0.08em]">Filter</span>
-        </div>
+       <div className={cn("flex w-full flex-col gap-8")}>
 
-        <div className="flex items-center gap-1">
-          <span className="opacity-50">source:</span>
-          {sources.map((s) => (
-            <button
-              key={s}
-              onClick={() => setFilterSource(s)}
-              className={cn(
-                "rounded px-2 py-1 transition-colors hover:bg-current/5",
-                filterSource === s && "bg-current/15 text-text-primary font-medium"
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+         {providers && (
+           <Card>
+             <CardHeader>
+               <CardTitle>{t.pluginsPage.providersHeading}</CardTitle>
+               <p className="text-xs tracking-[0.08em] text-text-tertiary">
+                 {t.pluginsPage.providersHint}
+               </p>
+             </CardHeader>
 
-        <div className="flex items-center gap-1">
-          <span className="opacity-50">status:</span>
-          {statuses.map((st) => (
-            <button
-              key={st}
-              onClick={() => setFilterStatus(st)}
-              className={cn(
-                "rounded px-2 py-1 transition-colors hover:bg-current/5",
-                filterStatus === st && "bg-current/15 text-text-primary font-medium"
-              )}
-            >
-              {st}
-            </button>
-          ))}
-        </div>
+             <CardContent className="flex flex-col gap-6">
 
-        <div className="flex items-center gap-1 ml-4 border-l border-current/15 pl-3">
-          <ArrowUpDown className="h-3.5 w-3.5 opacity-60" />
-          {(["name", "source", "runtime_status"] as const).map((field) => (
-            <button
-              key={field}
-              onClick={() =>
-                setSortBy((prev) => {
-                  if (prev === field) {
-                    setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-                    return field;
-                  }
-                  setSortDir("asc");
-                  return field;
-                })
-              }
-              className="rounded px-2 py-1 transition-colors hover:bg-current/5"
-            >
-              {sortBy === field && sortDir === "desc" ? "↓" : sortBy === field ? "↑" : ""}
-              {field === "runtime_status" ? "status" : field}
-            </button>
-          ))}
-        </div>
+               <div className="grid gap-6 sm:grid-cols-2 max-w-full">
+               <div className="grid gap-2 min-w-0">
+                 <Label htmlFor="mem-provider">{t.pluginsPage.memoryProviderLabel}</Label>
 
-        <span className="text-[10px] tracking-wider text-text-tertiary">
-          {filtered.length} / {rows.length}
-        </span>
-      </div>
+                 <Select
+                   id="mem-provider"
+                   className="w-full"
+                   value={memorySel}
+                   onValueChange={setMemorySel}
+                 >
+                   <SelectOption value={MEMORY_PROVIDER_BUILTIN}>
+                     {`(${t.pluginsPage.providerDefaults})`}
+                   </SelectOption>
 
-      <div className={cn("flex w-full flex-col gap-8")}>
+                   {providers.memory_options.map((o) => (
+                     <SelectOption key={o.name} value={o.name}>
+                       {o.name}
+                     </SelectOption>
+                   ))}
+                 </Select>
+               </div>
 
-        {providers && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.pluginsPage.providersHeading}</CardTitle>
-              <p className="text-xs tracking-[0.08em] text-text-tertiary">
-                {t.pluginsPage.providersHint}
-              </p>
-            </CardHeader>
+               <div className="grid gap-2 min-w-0">
+                 <Label htmlFor="ctx-engine">{t.pluginsPage.contextEngineLabel}</Label>
 
-            <CardContent className="flex flex-col gap-6">
+                 <Select
+                   id="ctx-engine"
+                   className="w-full"
+                   value={contextSel}
+                   onValueChange={setContextSel}
+                 >
+                   <SelectOption value="compressor">compressor</SelectOption>
 
-              <div className="grid gap-6 sm:grid-cols-2 max-w-full">
-              <div className="grid gap-2 min-w-0">
-                <Label htmlFor="mem-provider">{t.pluginsPage.memoryProviderLabel}</Label>
+                   {providers.context_options
+                     .filter((o) => o.name !== "compressor")
+                     .map((o) => (
+                       <SelectOption key={o.name} value={o.name}>
+                         {o.name}
+                       </SelectOption>
+                     ))}
+                 </Select>
+               </div>
+               </div>
 
-                <Select
-                  id="mem-provider"
-                  className="w-full"
-                  value={memorySel}
-                  onValueChange={setMemorySel}
-                >
-                  <SelectOption value={MEMORY_PROVIDER_BUILTIN}>
-                    {`(${t.pluginsPage.providerDefaults})`}
-                  </SelectOption>
+               <Button
+                 className="w-fit uppercase"
+                 size="sm"
+                 disabled={providerBusy}
+                 onClick={() => void onSaveProviders()}
+                 prefix={providerBusy ? <Spinner /> : undefined}
+               >
+                 {t.common.save}
+               </Button>
+             </CardContent>
+           </Card>
+         )}
 
-                  {providers.memory_options.map((o) => (
-                    <SelectOption key={o.name} value={o.name}>
-                      {o.name}
-                    </SelectOption>
-                  ))}
-                </Select>
-              </div>
-
-              <div className="grid gap-2 min-w-0">
-                <Label htmlFor="ctx-engine">{t.pluginsPage.contextEngineLabel}</Label>
-
-                <Select
-                  id="ctx-engine"
-                  className="w-full"
-                  value={contextSel}
-                  onValueChange={setContextSel}
-                >
-                  <SelectOption value="compressor">compressor</SelectOption>
-
-                  {providers.context_options
-                    .filter((o) => o.name !== "compressor")
-                    .map((o) => (
-                      <SelectOption key={o.name} value={o.name}>
-                        {o.name}
-                      </SelectOption>
-                    ))}
-                </Select>
-              </div>
-              </div>
-
-              <Button
-                className="w-fit uppercase"
-                size="sm"
-                disabled={providerBusy}
-                onClick={() => void onSaveProviders()}
-                prefix={providerBusy ? <Spinner /> : undefined}
-              >
-                {t.common.save}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.pluginsPage.installHeading}</CardTitle>
-            <p className="text-xs tracking-[0.08em] text-text-tertiary">
-              {t.pluginsPage.installHint}
-            </p>
-          </CardHeader>
+         <Card>
+           <CardHeader>
+             <CardTitle>{t.pluginsPage.installHeading}</CardTitle>
+             <p className="text-xs tracking-[0.08em] text-text-tertiary">
+               {t.pluginsPage.installHint}
+             </p>
+           </CardHeader>
 
 
-          <CardContent className="flex flex-col gap-4">
+           <CardContent className="flex flex-col gap-4">
 
-            <div className="flex flex-col gap-2">
+             <div className="flex flex-col gap-2">
 
-              <Label htmlFor="install-url">{t.pluginsPage.identifierLabel}</Label>
+               <Label htmlFor="install-url">{t.pluginsPage.identifierLabel}</Label>
 
-              <Input
-                className="font-mono-ui lowercase"
-                id="install-url"
-                placeholder="owner/repo, owner/repo/subdir, or https://..."
-                spellCheck={false}
-                value={installId}
-                onChange={(e) => setInstallId(e.target.value)}
-              />
-            </div>
-
-
-            <div className="flex flex-wrap items-center gap-8">
-
-              <div className="flex items-center gap-3">
-
-                <Switch checked={installForce} onCheckedChange={setInstallForce} />
-
-                <span className="text-xs tracking-[0.06em] text-text-secondary">
-                  {t.pluginsPage.forceReinstall}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-
-                <Switch checked={installEnable} onCheckedChange={setInstallEnable} />
-
-                <span className="text-xs tracking-[0.06em] text-text-secondary">
-                  {t.pluginsPage.enableAfterInstall}
-                </span>
-              </div>
-            </div>
-
-            <Button
-              className="w-fit uppercase"
-              size="sm"
-              disabled={installBusy}
-              onClick={() => void onInstall()}
-              prefix={installBusy ? <Spinner /> : undefined}
-            >
-              {t.pluginsPage.installBtn}
-            </Button>
-
-            <p className="text-xs tracking-[0.06em] text-text-tertiary">
-              {t.pluginsPage.rescanHint}
-            </p>
-
-            <p className="text-xs tracking-[0.06em] text-text-tertiary">
-              {t.pluginsPage.removeHint}
-            </p>
-          </CardContent>
-        </Card>
-
-        <div className="flex flex-col gap-3">
-
-          <h3 className="font-mondwest text-display text-xs tracking-[0.12em] text-text-secondary">
-            {t.pluginsPage.pluginListHeading}
-          </h3>
-
-          {loading ? (
-
-            <div className="flex items-center gap-2 py-8 text-xs text-text-tertiary">
-
-              <Spinner />
-              <span>{t.common.loading}</span>
-            </div>
-          ) : rows.length === 0 ? (
-
-            <p className="text-xs text-text-tertiary">{t.common.noResults}</p>
-          ) : (
-
-            <ul className="flex flex-col gap-3">
-
-              {filtered.map((row: HubAgentPluginRow) => (
-
-                <li key={row.name}>
+               <Input
+                 className="font-mono-ui lowercase"
+                 id="install-url"
+                 placeholder="owner/repo, owner/repo/subdir, or https://..."
+                 spellCheck={false}
+                 value={installId}
+                 onChange={(e) => setInstallId(e.target.value)}
+               />
+             </div>
 
 
-                  <PluginRowCard
-                    {...{ row, rowBusy, setRuntimeLoading, showToast, t }}
-                  />
+             <div className="flex flex-wrap items-center gap-8">
 
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+               <div className="flex items-center gap-3">
 
+                 <Switch checked={installForce} onCheckedChange={setInstallForce} />
+
+                 <span className="text-xs tracking-[0.06em] text-text-secondary">
+                   {t.pluginsPage.forceReinstall}
+                 </span>
+               </div>
+
+               <div className="flex items-center gap-3">
+
+                 <Switch checked={installEnable} onCheckedChange={setInstallEnable} />
+
+                 <span className="text-xs tracking-[0.06em] text-text-secondary">
+                   {t.pluginsPage.enableAfterInstall}
+                 </span>
+               </div>
+             </div>
+
+             <Button
+               className="w-fit uppercase"
+               size="sm"
+               disabled={installBusy}
+               onClick={() => void onInstall()}
+               prefix={installBusy ? <Spinner /> : undefined}
+             >
+               {t.pluginsPage.installBtn}
+             </Button>
+
+             <p className="text-xs tracking-[0.06em] text-text-tertiary">
+               {t.pluginsPage.rescanHint}
+             </p>
+
+             <p className="text-xs tracking-[0.06em] text-text-tertiary">
+               {t.pluginsPage.removeHint}
+             </p>
+           </CardContent>
+         </Card>
+
+         <div className="flex flex-col gap-3">
+
+           <h3 className="font-mondwest text-display text-xs tracking-[0.12em] text-text-secondary">
+             {t.pluginsPage.pluginListHeading}
+           </h3>
+
+           <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+             <div className="flex items-center gap-1.5">
+               <Filter className="h-3.5 w-3.5 opacity-60" />
+               <span className="uppercase tracking-[0.08em]">Filter</span>
+             </div>
+
+             <div className="flex items-center gap-1">
+               <span className="opacity-50">source:</span>
+               {sources.map((s) => (
+                 <button
+                   key={s}
+                   onClick={() => setFilterSource(s)}
+                   className={cn(
+                     "rounded px-2 py-1 transition-colors hover:bg-current/5",
+                     filterSource === s && "bg-current/15 text-text-primary font-medium"
+                   )}
+                 >
+                   {s}
+                 </button>
+               ))}
+             </div>
+
+             <div className="flex items-center gap-1">
+               <span className="opacity-50">status:</span>
+               {statuses.map((st) => (
+                 <button
+                   key={st}
+                   onClick={() => setFilterStatus(st)}
+                   className={cn(
+                     "rounded px-2 py-1 transition-colors hover:bg-current/5",
+                     filterStatus === st && "bg-current/15 text-text-primary font-medium"
+                   )}
+                 >
+                   {st}
+                 </button>
+               ))}
+             </div>
+
+             <div className="flex items-center gap-1 ml-4 border-l border-current/15 pl-3">
+               <ArrowUpDown className="h-3.5 w-3.5 opacity-60" />
+               {(["name", "source", "runtime_status"] as const).map((field) => (
+                 <button
+                   key={field}
+                   onClick={() =>
+                     setSortBy((prev) => {
+                       if (prev === field) {
+                         setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                         return field;
+                       }
+                       setSortDir("asc");
+                       return field;
+                     })
+                   }
+                   className="rounded px-2 py-1 transition-colors hover:bg-current/5"
+                 >
+                   {sortBy === field && sortDir === "desc" ? "↓" : sortBy === field ? "↑" : ""}
+                   {field === "runtime_status" ? "status" : field}
+                 </button>
+               ))}
+             </div>
+
+             <span className="text-[10px] tracking-wider text-text-tertiary">
+               {filtered.length} / {rows.length}
+             </span>
+           </div>
+
+           {loading ? (
+
+             <div className="flex items-center gap-2 py-8 text-xs text-text-tertiary">
+
+               <Spinner />
+               <span>{t.common.loading}</span>
+             </div>
+           ) : rows.length === 0 ? (
+
+             <p className="text-xs text-text-tertiary">{t.common.noResults}</p>
+           ) : (
+
+             <ul className="flex flex-col gap-3">
+
+               {filtered.map((row: HubAgentPluginRow) => (
+
+
+                 <li key={row.name}>
+
+
+                   <PluginRowCard
+                     {...{ row, rowBusy, setRuntimeLoading, showToast, t }}
+                   />
+
+                 </li>
+               ))}
+             </ul>
+           )}
+         </div>
         {(hub?.orphan_dashboard_plugins?.length ?? 0) > 0 ? (
 
 

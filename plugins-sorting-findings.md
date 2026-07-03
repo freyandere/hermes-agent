@@ -1,40 +1,35 @@
-# Plugins Page — Sorting & Filtering (2026-07-03)
+# Plugins Sorting & Filtering — Fix Report
 
-## Файлы
+## Issue
+Filtering by source="user" produced duplicate plugin entries (fal, xai-bundled).
 
-- `web/src/pages/PluginsPage.tsx` — сортировка + фильтрация
-- `web/src/plugins/slots.ts` — система слотов
-- `web/src/lib/api.ts:2284-2298` — интерфейс `HubAgentPluginRow`
-- `hermes_cli/web_server.py:13610` — API endpoint `/api/hub`
+## Root Cause
+`_discover_all_plugins()` scans both bundled and user directories. Same plugin with different `key` values in each directory creates separate entries in the API response — visible as duplicates.
 
-## Ключевые выводы
+## Fix Applied
+Added deduplication by name in `_merged_plugins_hub()` (web_server.py line ~13697):
+- `rows_by_name` dict keeps last entry per plugin name
+- User plugins override bundled ones (last-write-wins)
 
-- PluginSlot `name="plugins:bottom"` был удалён (источник дублирования)
-- Контролы фильтрации OUTSIDE `<Card>` — в самом `<div>`
-- i18n отсутствует — строки хардкодом (`source`, `status`, `name`)
-- Build проходит за ~370ms (481 модулей)
-- Dashboard на порту 9119
+## Files
+- `web/src/pages/PluginsPage.tsx` — sorting + filtering
+- `web/src/plugins/slots.ts` — slot system
+- `web/src/lib/api.ts:2284-2298` — `HubAgentPluginRow` interface
+- `hermes_cli/web_server.py` — `_merged_plugins_hub` dedup logic
+- `hermes_cli/plugins_cmd.py` — `_discover_all_plugins`, `_scan_level`
 
-## Структура сортировки
+## Key Findings
+- PluginSlot `name="plugins:bottom"` was removed (duplicate source)
+- Filter controls OUTSIDE `<Card>` — in the `<div>` directly
+- i18n missing — strings hardcoded (`source`, `status`, `name`)
+- Build completes in ~370ms (481 modules)
+- Dashboard on port 9119
 
-```
-sortBy: "name" | "source" | "runtime_status"
-sortDir: "asc" | "desc"
-```
+## Sorting Structure
+Sorts via `localeCompare()` on string representation of the field.
 
-Сортировка по `localeCompare()` на строковом представлении.
+## Filter Pipeline
+1. Sort → 2. Filter (source + status) — pipeline order matters for performance.
 
-## Фильтрация
-
-```
-sources: ["all", "bundled", "user", "git"]
-statuses: ["all", "enabled", "disabled", "inactive"]
-```
-
-## Бэкап
-
-```bash
-git tag plugins-sortable-backup
-```
-
-Путь: `C:\Users\Admin\AppData\Local\hermes\hermes-agent`
+## Backup
+Path: `C:\Users\Admin\AppData\Local\hermes\hermes-agent`
