@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ExternalLink, RefreshCw, Trash2, Eye, EyeOff } from "lucide-react";
+import { ExternalLink, RefreshCw, Trash2, Eye, EyeOff, ArrowUpDown, Filter } from "lucide-react";
 import type { Translations } from "@/i18n/types";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
@@ -36,6 +36,10 @@ export default function PluginsPage() {
   const [contextSel, setContextSel] = useState("compressor");
   const [providerBusy, setProviderBusy] = useState(false);
   const [rowBusy, setRowBusy] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"name" | "source" | "runtime_status">("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [filterSource, setFilterSource] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const { toast, showToast } = useToast();
   const { t } = useI18n();
@@ -146,11 +150,86 @@ export default function PluginsPage() {
   };
 
   const rows = hub?.plugins ?? [];
+
+  // Sort + filter pipeline
+  const sources = ["all", "bundled", "user", "git"];
+  const statuses = ["all", "enabled", "disabled", "inactive"];
+  const sorted = [...rows].sort((a, b) => {
+    const key = sortBy as keyof HubAgentPluginRow;
+    const valA = String(a[key] ?? "");
+    const valB = String(b[key] ?? "");
+    const cmp = valA.localeCompare(valB);
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+  const filtered = sorted.filter((r) =>
+    (filterSource === "all" || r.source === filterSource) &&
+    (filterStatus === "all" || r.runtime_status === filterStatus)
+  );
   const providers = hub?.providers;
 
   return (
     <div className="flex flex-col gap-4">
       <PluginSlot name="plugins:top" />
+
+      <div className="flex flex-wrap items-center gap-3 text-xs text-text-secondary">
+        <div className="flex items-center gap-1.5">
+          <Filter className="h-3.5 w-3.5 opacity-60" />
+          <span className="uppercase tracking-[0.08em]">Filter</span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <span className="opacity-50">source:</span>
+          {sources.map((s) => (
+            <button
+              key={s}
+              onClick={() => setFilterSource(s)}
+              className="rounded px-2 py-1 transition-colors hover:bg-current/5"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1">
+          <span className="opacity-50">status:</span>
+          {statuses.map((st) => (
+            <button
+              key={st}
+              onClick={() => setFilterStatus(st)}
+              className="rounded px-2 py-1 transition-colors hover:bg-current/5"
+            >
+              {st}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1 ml-4 border-l border-current/15 pl-3">
+          <ArrowUpDown className="h-3.5 w-3.5 opacity-60" />
+          {(["name", "source", "runtime_status"] as const).map((field) => (
+            <button
+              key={field}
+              onClick={() =>
+                setSortBy((prev) => {
+                  if (prev === field) {
+                    setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+                    return field;
+                  }
+                  setSortDir("asc");
+                  return field;
+                })
+              }
+              className="rounded px-2 py-1 transition-colors hover:bg-current/5"
+            >
+              {sortBy === field && sortDir === "desc" ? "↓" : sortBy === field ? "↑" : ""}
+              {field === "runtime_status" ? "status" : field}
+            </button>
+          ))}
+        </div>
+
+        <span className="text-[10px] tracking-wider text-text-tertiary">
+          {filtered.length} / {rows.length}
+        </span>
+      </div>
 
       <div className={cn("flex w-full flex-col gap-8")}>
 
@@ -309,7 +388,7 @@ export default function PluginsPage() {
 
             <ul className="flex flex-col gap-3">
 
-              {rows.map((row: HubAgentPluginRow) => (
+              {filtered.map((row: HubAgentPluginRow) => (
 
                 <li key={row.name}>
 
@@ -362,7 +441,6 @@ export default function PluginsPage() {
       </div>
 
       <Toast toast={toast} />
-      <PluginSlot name="plugins:bottom" />
     </div>
   );
 }
