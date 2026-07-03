@@ -183,7 +183,10 @@ export default function PluginsPage() {
             <button
               key={s}
               onClick={() => setFilterSource(s)}
-              className="rounded px-2 py-1 transition-colors hover:bg-current/5"
+              className={cn(
+                "rounded px-2 py-1 transition-colors hover:bg-current/5",
+                filterSource === s && "bg-current/15 text-text-primary font-medium"
+              )}
             >
               {s}
             </button>
@@ -196,7 +199,10 @@ export default function PluginsPage() {
             <button
               key={st}
               onClick={() => setFilterStatus(st)}
-              className="rounded px-2 py-1 transition-colors hover:bg-current/5"
+              className={cn(
+                "rounded px-2 py-1 transition-colors hover:bg-current/5",
+                filterStatus === st && "bg-current/15 text-text-primary font-medium"
+              )}
             >
               {st}
             </button>
