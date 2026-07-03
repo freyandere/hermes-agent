@@ -33,6 +33,7 @@
   "homepage": "https://github.com/NousResearch/Hermes-Agent#readme",
   "dependencies": {
     "@streamdown/math": "^1.0.2",
+    "@vitejs/plugin-react": "^6.0.3",
     "agent-browser": "^0.26.0"
   },
   "overrides": {
