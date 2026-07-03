@@ -13715,6 +13715,11 @@ def _merged_plugins_hub() -> Dict[str, Any]:
             "user_hidden": name in hidden_plugins,
         })
 
+    rows_by_name: Dict[str, Dict[str, Any]] = {}
+    for r in rows:
+        rows_by_name[r["name"]] = r
+    rows = list(rows_by_name.values())
+
     agent_names = {r["name"] for r in rows}
     orphan_dashboard = [
         _strip_dashboard_manifest(p)
